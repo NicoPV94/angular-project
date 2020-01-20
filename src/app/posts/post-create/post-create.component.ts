@@ -1,6 +1,5 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Post } from '../post.model';
 import { PostsService } from '../posts.service';
 
 
@@ -12,21 +11,16 @@ import { PostsService } from '../posts.service';
 export class PostCreateComponent {
     enteredTitle = ''; //Create new property, you don't need to use "const, let or var" to declare it.
     enteredContent = '';
-    @Output() postCreated = new EventEmitter<Post>();
+
+    constructor(public postsService: PostsService) {}
 
     onAddPost(form: NgForm) {
         if(form.invalid) {
             return;
         }
 
-        const post: Post = {
-            title: form.value.title,
-            content: form.value.content
-        };
+        this.postsService.addPost(form.value.title, form.value.content);
 
-        this.postCreated.emit(post);
     }
-
-    constructor(public postsService: PostsService) {}
 
 }
