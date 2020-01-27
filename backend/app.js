@@ -4,8 +4,9 @@ const bodyParser = require('body-parser');
 //Creating express app
 const app = express();
 
+//Parsing request's body
 app.use(bodyParser.json());
-
+app.use(bodyParser.urlencoded({extended: false}));
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,10 +22,14 @@ app.use((req, res, next) => {
 });
 
 app.post('/api/posts', (req, res, next) => {
-    console.log();
+    const post = req.body;
+    console.log(post);
+    res.status(201).json({
+        message: 'Post successful'
+    });
 });
 
-app.use('/api/posts', (req, res, next) => {
+app.get('/api/posts', (req, res, next) => {
     const posts = [
     {   id: 'askdjh',
         title: 'First server-side post!',
