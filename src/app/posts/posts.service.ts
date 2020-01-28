@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Post } from './post.model';
 
@@ -10,11 +11,30 @@ export class PostsService {
   private postsUpdated = new Subject<Post[]>();
 
   constructor(private http: HttpClient) {}
-
+  
+  /**
+   * To transform the "_id" that comes from the backend into "id" for it
+   * to be a valid field in the "Post" model in the frontend, we use the
+   * "map()" method imported from "rxjs/operators" and also, we use the "pipe()"
+   * method to link more than one operator into one and modify data that we
+   * recieve from an observable before we subscribe to it.
+   */
   getPosts() {
-    this.http.get<{ message: string; posts: Post[] }>('http://localhost:3000/api/posts')
-      .subscribe(postData => {
-        this.posts = postData.posts;
+    this.http
+      .get<{ message: string; posts: any }>('http://localhost:3000/api/posts')
+      .pipe(
+        map(postData => {
+          return postData.posts.map(post => {
+            return {
+              id: post._id,
+              title: post.title,
+              content: post.content,
+            };
+          });
+        }),
+      )
+      .subscribe(transformedPosts => {
+        this.posts = transformedPosts;
         this.postsUpdated.next([...this.posts]);
       });
   }
@@ -25,10 +45,27 @@ export class PostsService {
 
   addPost(title: string, content: string) {
     const post: Post = { id: null, title: title, content: content };
-    this.http.post<{ message: string }>('http://localhost:3000/api/posts', post)
+    this.http
+      .post<{ message: string; postId: string }>(
+        'http://localhost:3000/api/posts',
+        post,
+      )
       .subscribe(responseData => {
-        console.log(responseData.message);
+        const id = responseData.postId;
+        post.id = id;
         this.posts.push(post);
+        this.postsUpdated.next([...this.posts]);
+      });
+  }
+
+  deletePost(postId: string) {
+    this.http
+      .delete('http://localhost:3000/api/posts/' + postId)
+      .subscribe(() => {
+        const updatedPosts = this.posts.filter(post => {
+          return post.id !== postId;
+        });
+        this.posts = updatedPosts;
         this.postsUpdated.next([...this.posts]);
       });
   }
