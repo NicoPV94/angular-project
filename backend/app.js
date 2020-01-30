@@ -1,9 +1,9 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const path = require("path");
 
 const postRoutes = require("./routes/posts");
-
 
 //Creating express app
 const app = express();
@@ -31,6 +31,7 @@ mongoose
 //Parsing request's body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use("/images", express.static(path.join("backend/images")));
 
 //CORS Configuration middleware
 app.use((req, res, next) => {
@@ -46,8 +47,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/api/posts', postRoutes);
-
+app.use("/api/posts", postRoutes);
 
 //Exporting the express app
 module.exports = app;
