@@ -1,9 +1,14 @@
 import { AbstractControl } from '@angular/forms';
-import { Observable, Observer } from 'rxjs';
+import { Observable, Observer, of } from 'rxjs';
 
 export const mimetype = (
   control: AbstractControl,
 ): Promise<{ [key: string]: any }> | Observable<{ [key: string]: any }> => {
+  if(typeof(control.value) === 'string') {
+    //of is a simple way to create an observable. We return null because when the control returns null
+    // it means that the validation is valid. 
+    return of(null);
+  }
   const file = control.value as File;
   const fileReader = new FileReader();
   const fileReaderObs = Observable.create(
