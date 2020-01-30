@@ -46,7 +46,7 @@ const onListening = () => {
 //Assigning the port we want to use to a constant
 const port = normalizePort(process.env.PORT || "3000");
 
-//Configuring express to use the specified port we are using
+//Configuring express app to use the specified port we are using
 app.set("port", port);
 
 //Creating server
