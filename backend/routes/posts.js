@@ -32,9 +32,8 @@ const storage = multer.diskStorage({
 });
 
 //Posting to the database
-router.post("", multer({storage: storage}).single('image'),(req, res, next) => {
+router.post("", multer({storage: storage}).single('image'), (req, res, next) => {
   const url = req.protocol + "://" + req.get('host');
-  console.log(url);
   const post = new Post({
     title: req.body.title,
     content: req.body.content,
@@ -54,11 +53,17 @@ router.post("", multer({storage: storage}).single('image'),(req, res, next) => {
 });
 
 //Updating post
-router.put("/:id", (req, res) => {
+router.put("/:id", multer({storage: storage}).single('image'), (req, res) => {
+  let imagePath = req.body.imagePath;
+  if(req.file) {
+    const url = req.protocol + "://" + req.get('host');
+    imagePath = url + '/images/' + req.file.filename;
+  }
   const post = new Post({
     _id: req.body.id,
     title: req.body.title,
-    content: req.body.content
+    content: req.body.content,
+    imagePath: imagePath
   });
   Post.updateOne({ _id: req.params.id }, post).then(result => {
     res.status(200).json({ message: "Post updated successfully!" });
@@ -89,7 +94,6 @@ router.get("/:id", (req, res) => {
 //Deleting a post
 router.delete("/:id", (req, res) => {
   Post.deleteOne({ _id: req.params.id }).then(result => {
-    console.log(result);
     res.status(200).json({ message: "Post deleted successfully" });
   });
 });
