@@ -38,7 +38,7 @@ router.post("/login", (req, res) => {
         });
       }
       fetchedUser = user;
-      return bcrypt.compare(req.body.password, user.password);
+      return bcrypt.compare(req.body.password, user.password); //Returns a boolean, true if the password matches, false if it doesn't.
     })
     .then(result => {
       if (!result) {
@@ -56,7 +56,8 @@ router.post("/login", (req, res) => {
       );
       res.status(200).json({
         token: token,
-        expiresIn: 3600
+        expiresIn: 3600,
+        userId: fetchedUser._id
       });
     })
     .catch(err => {
