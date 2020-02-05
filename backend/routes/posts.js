@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require("multer");
 
 const Post = require("../models/post");
-const checkAuth = require('../middleware/check-auth');
+const checkAuth = require("../middleware/check-auth");
 
 const router = express.Router();
 
@@ -42,7 +42,8 @@ router.post(
     const post = new Post({
       title: req.body.title,
       content: req.body.content,
-      imagePath: url + "/images/" + req.file.filename
+      imagePath: url + "/images/" + req.file.filename,
+      creator: req.userData.userId
     });
     post.save().then(createdPost => {
       res.status(201).json({
@@ -59,44 +60,59 @@ router.post(
 );
 
 //Updating post
-router.put("/:id", checkAuth, multer({ storage: storage }).single("image"), (req, res) => {
-  let imagePath = req.body.imagePath;
-  if (req.file) {
-    const url = req.protocol + "://" + req.get("host");
-    imagePath = url + "/images/" + req.file.filename;
+router.put(
+  "/:id",
+  checkAuth,
+  multer({ storage: storage }).single("image"),
+  (req, res) => {
+    let imagePath = req.body.imagePath;
+    if (req.file) {
+      const url = req.protocol + "://" + req.get("host");
+      imagePath = url + "/images/" + req.file.filename;
+    }
+    const post = new Post({
+      _id: req.body.id,
+      title: req.body.title,
+      content: req.body.content,
+      imagePath: imagePath
+    });
+    Post.updateOne(
+      { _id: req.params.id, creator: req.userData.userId },
+      post
+    ).then(result => {
+      if (result.nModified > 0) {
+        res.status(200).json({ message: "Post updated successfully!" });
+      } else {
+        res.status(401).json({ message: "Not authorized to edit!" });
+      }
+    });
   }
-  const post = new Post({
-    _id: req.body.id,
-    title: req.body.title,
-    content: req.body.content,
-    imagePath: imagePath
-  });
-  Post.updateOne({ _id: req.params.id }, post).then(result => {
-    res.status(200).json({ message: "Post updated successfully!" });
-  });
-});
+);
 
 //Getting posts from the database
 router.get("", (req, res, next) => {
-  const pageSize = +req.query.pagesize;//Adding a plus sign before so that the data is converted from string to number.
+  const pageSize = +req.query.pagesize; //Adding a plus sign before so that the data is converted from string to number.
   const currentPage = +req.query.page;
   const postQuery = Post.find();
   let fetchedPosts;
   if (pageSize && currentPage) {
     postQuery.skip(pageSize * (currentPage - 1)).limit(pageSize);
   }
-  postQuery.find().then(posts => {
-    fetchedPosts = posts;
-    //The countDocuments method returns the count of all the documents in a collection.
-    return Post.countDocuments();
-    }).then(count => {
-      res.status(200).json({ 
-        message: 'Posts fetched successfully.',
+  postQuery
+    .find()
+    .then(posts => {
+      fetchedPosts = posts;
+      //The countDocuments method returns the count of all the documents in a collection.
+      return Post.countDocuments();
+    })
+    .then(count => {
+      res.status(200).json({
+        message: "Posts fetched successfully.",
         posts: fetchedPosts,
         maxPosts: count
       });
     });
-  });
+});
 
 //Getting a specific post
 router.get("/:id", (req, res) => {
@@ -111,9 +127,15 @@ router.get("/:id", (req, res) => {
 
 //Deleting a post
 router.delete("/:id", checkAuth, (req, res) => {
-  Post.deleteOne({ _id: req.params.id }).then(result => {
-    res.status(200).json({ message: "Post deleted successfully" });
-  });
+  Post.deleteOne({ _id: req.params.id, creator: req.userData.userId }).then(
+    result => {
+      if (result.deletedCount > 0) {
+        res.status(200).json({ message: "Post deleted successfully!" });
+      } else {
+        res.status(401).json({ message: "Not authorized to delete!" });
+      }
+    }
+  );
 });
 
 module.exports = router;
