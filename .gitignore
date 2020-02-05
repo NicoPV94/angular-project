@@ -1,7 +1,8 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
-# exclude everything
-images/*
+# exclude everything but gitkeep
+backend/images/*
+!backend/images/.gitkeep
 
 # compiled output
 /dist
