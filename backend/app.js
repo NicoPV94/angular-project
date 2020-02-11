@@ -10,25 +10,26 @@ const userRoutes = require("./routes/users");
 const app = express();
 
 //Connecting to MongoDB
-// mongoose.connect('mongodb+srv://nico:9l68ELZvaWm4jqnc@cluster0-7auiq.mongodb.net/node-angular?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
-//     .then(() => {
-//         console.log('Connected to database!');
-//     })
-//     .catch(() => {
-//         console.log('Connection failed!');
-//     });
+
 mongoose.set('useCreateIndex', true);
-mongoose
-  .connect("mongodb://10.0.0.73:27017/node-angular", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log("Connected to database!");
-  })
-  .catch(() => {
-    console.log("Connection failed!");
-  });
+mongoose.connect(`mongodb+srv://nico:${process.env.MONGO_ATLAS_PW}@cluster0-7auiq.mongodb.net/node-angular?retryWrites=true&w=majority`, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+        console.log('Connected to database!');
+    })
+    .catch(() => {
+        console.log('Connection failed!');
+    });
+// mongoose
+//   .connect("mongodb://10.0.0.73:27017/node-angular", {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true
+//   })
+//   .then(() => {
+//     console.log("Connected to database!");
+//   })
+//   .catch(() => {
+//     console.log("Connection failed!");
+//   });
 
 //Parsing request's body
 app.use(bodyParser.json());
